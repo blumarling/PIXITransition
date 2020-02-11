@@ -68,7 +68,7 @@ function canvasSlideshow( options ) {
   renderer.autoDensity = true
   renderer.antialias = true
 
-  console.log({renderer})
+  // console.log({renderer})
   var stage               = new PIXI.Container();
   var slidesContainer     = new PIXI.Container();
   slidesContainer.sortableChildren = true;
@@ -126,8 +126,6 @@ function canvasSlideshow( options ) {
   /// ---------------------------    
   this.currentIndex = 0;
 
-
-
   /// ---------------------------
   //  INITIALISE PIXI
   /// ---------------------------      
@@ -140,7 +138,7 @@ function canvasSlideshow( options ) {
     stage.addChild( slidesContainer );
     // Enable Interactions
     stage.interactive = true;
-    console.log(renderer.view.style);
+    // console.log(renderer.view.style);
 
     // displacementSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
 
@@ -178,7 +176,6 @@ function canvasSlideshow( options ) {
       maske.anchor.y = 0.5;
       image.addChild(maske)
       
-      image.zIndex = i
 
       if ( rTexts ) {
         var richText = new PIXI.Text( rTexts[i], style);
@@ -190,10 +187,11 @@ function canvasSlideshow( options ) {
       }
       
       image.anchor.set(0.5);
-      console.log({image})
+      // console.log({image})
       image.x = renderer.width / 2;
       image.y = renderer.height / 2;
-      image.zIndex = rSprites.length - i;
+      // image.zIndex = rSprites.length - i;
+      image.zIndex = 99 - i
 
       if(renderer.width/renderer.height > 4096/2048) {
         image.height = (renderer.width * 2048) / 4096;
@@ -203,7 +201,7 @@ function canvasSlideshow( options ) {
         image.width = (renderer.height * 4096) / 2046;
       }
       
-      console.log(renderer.height)
+      // console.log(renderer.height)
       
       gsap.set( image, { alpha: 1 } );
       image.mask = maske
@@ -227,18 +225,18 @@ function canvasSlideshow( options ) {
   /// ---------------------------
   //  TRANSITION BETWEEN SLIDES
   /// ---------------------------    
-  var isPlaying   = false;  
-  var slideImages = slidesContainer.children;    
+  let isPlaying   = false;  
+  const slideImages = slidesContainer.children;    
 
-  const moveSlider = function( newIndex ) {
+  this.moveSlider = ( newIndex, oldIndex ) => {
     
-    isPlaying = true;
-    console.log({slideImages})
+    console.log({newIndex, oldIndex})
 
-    var baseTimeline = gsap.timeline( {
+    isPlaying = true;
+    
+    const baseTimeline = gsap.timeline( {
       onComplete: function () {
         console.log('finito')
-        that.currentIndex = newIndex || 0;
         isPlaying = false;          
       },
       onUpdate: function() {
@@ -250,7 +248,7 @@ function canvasSlideshow( options ) {
 
     if ( baseTimeline.isActive() ) {
       return;
-    }      
+    }
     
     const clonedInstance = {...slideImages[0].scale}
     const startingScaleX = new Number(clonedInstance._x)
@@ -262,19 +260,45 @@ function canvasSlideshow( options ) {
     const zoomedXout = startingScaleX - 0.3
     const zoomedYout = startingScaleY - 0.3
 
+    const zoomedXInitial = startingScaleX - 0.3
+    const zoomedYInitial = startingScaleY - 0.3
+
+    const underPic = slideImages[newIndex]
+    const overPic = slideImages[oldIndex]
+    
+    // console.log({slideImages})
+
+    // console.log({underPic})
+    // console.log({overPic})
+
+    slideImages.forEach((item, index) => {
+      gsap.set(item, { zIndex: 0, alpha: 0})
+    })
+
+    // console.log({newIndex})
+
     baseTimeline
-      .set(slideImages[0].mask, { zIndex: 0, pixi: {scaleX:10, scaleY:10}})
-      .set(slideImages[1].mask, { zIndex: 1, pixi: {scaleX:10, scaleY:10}})
+      .set(overPic.mask, { pixi: {scaleX:10, scaleY:10}})
+      .set(underPic.mask, { pixi: {scaleX:10, scaleY:10}})
+      .set(underPic, { zIndex: 2, alpha: 1, pixi: {zIndex: 20}})
+      .set(overPic, { zIndex: 20, alpha: 1, pixi: {zIndex: 20}})
+
+      .set(underPic.mask, { zIndex: 2, alpha: 1})
+      .set(overPic.mask, { zIndex: 20, alpha: 1})
       // andata
-      .to(slideImages[1], 1.4, { ease: Power1.easeOut, pixi: {scaleX:zoomedX, scaleY:zoomedY, rotation: -14}})
+      .to(overPic, 1.4, { ease: Power1.easeOut, pixi: {scaleX:zoomedX, scaleY:zoomedY, rotation: -14}})
       .to(warpFilter, 1.4, { ease: Power1.easeInOut, x: -0.8, y:-0.8, verticals: 1.1 }, '-=3')
-      .to(slideImages[1].mask, 1.4, { alpha: 0.95, ease: Power3.easeOut, pixi: {scaleX:2, scaleY:2, rotation: -10} }, '-=1.2')
+      .to(overPic.mask, 1.4, { alpha: 0.95, ease: Power3.easeOut, pixi: {scaleX:2, scaleY:2, rotation: -10} }, '-=1.2')
       .to(zoomFilter, 1, { ease: Power1.easeInOut, strength: 0.19 }, '-=1')
       // ritorno
-      .to(slideImages[1], 1.3, { ease: Power1.easeOut, pixi: {scaleX:zoomedXout, scaleY:zoomedYout, rotation: -20}}, '-=0.3')
-      .to(slideImages[1].mask, 1.2, { alpha: 0, ease: Power3.easeOut, pixi: {scaleX:1.9, scaleY:1.9, rotation: -80}}, '-=1')
+      .to(overPic, 1.3, { ease: Power1.easeOut, pixi: {scaleX:zoomedXout, scaleY:zoomedYout, rotation: -20}}, '-=0.3')
+      .to(overPic.mask, 1.2, { alpha: 0, ease: Power3.easeOut, pixi: {scaleX:1.9, scaleY:1.9, rotation: -80}}, '-=1')
       .to(zoomFilter, 1.3, { ease: Power1.easeOut, strength: 0 }, '-=0.9')
       .to(warpFilter, 1.3, { ease: Power1.easeOut, x: 0, y:0, verticals: 1 }, '-=0.9')
+
+      .set(overPic, { zIndex: 0, pixi: {scaleX:zoomedXInitial, scaleY:zoomedYInitial, rotation: 0}})
+      .set(overPic.mask, { zIndex: 0, alpha: 1, pixi: {scaleX:10, scaleY:10, rotation: 0}})
+
   };
 
   /// ---------------------------
@@ -285,24 +309,21 @@ function canvasSlideshow( options ) {
 
     that.initPixi();
     that.loadPixiSprites( options.pixiSprites );
+  
 
-    gsap.set( slideImages[0].mask, { pixi: {scaleX:10, scaleY:10}} )
-    gsap.set( slideImages[1].mask, { pixi: {scaleX:10, scaleY:10}} )
-    // gsap.set( slideImages[3].mask, { zIndex: 0, pixi: {scaleX:5, scaleY:5}} )
+    slideImages.forEach((item, index) => {
+      gsap.set( item.mask, { pixi: {scaleX:10, scaleY:10}} )
+    })
+
     setTimeout(() => {
-      // toNextSlide(1)
-      moveSlider(1)
+      this.moveSlider(1,2)
     }, 4000)
+    setTimeout(() => {
+      this.moveSlider(2,1)
+    }, 9000)
 
   };
 
-  function toNextSlide(x) {
-    console.log({x})
-    moveSlider(x)
-    // setTimeout(() => {
-    //   toNextSlide((slideImages.length - 3 - x) < 0 ? 0 : x + 1)
-    // }, 4000)
-  }
   
   /// ---------------------------
   //  START 
