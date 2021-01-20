@@ -24,7 +24,7 @@
     "@amoy/filters": "^3.0.31",
     "@pixi/filter-twist": "^3.0.3",
     "@pixi/filter-zoom-blur": "^3.0.3",
-    "gsap": "^3.1.1",
+    "gsap": "^3.6.0",
     "pixi.js": "^5.2.1",
     "three": "^0.113.2"
   }
