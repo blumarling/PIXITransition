@@ -26,6 +26,6 @@
     "@pixi/filter-zoom-blur": "^3.0.3",
     "gsap": "^3.1.1",
     "pixi.js": "^5.2.1",
-    "three": "^0.113.2"
+    "three": "^0.125.0"
   }
 }
